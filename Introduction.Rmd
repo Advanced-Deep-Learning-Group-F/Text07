@@ -94,6 +94,10 @@ An example for translation, another example for rotation and another one for pro
 
 - x
 <!-- #endregion -->
+### Gifs
+![SegmentLocal](gifs/LinearTransformation.gif "segment")
+
+
 
 
 
