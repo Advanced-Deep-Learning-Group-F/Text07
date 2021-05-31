@@ -88,6 +88,7 @@ While affine transformations preserve parallel lines, projective transformations
 ### example 1: translation
 An example for translation, another example for rotation and another one for projective transformation (slide 55, but in LaTeX with nice matrix representation and two images)
 ![image.png](attachment:image.png)
+![SegmentLocal](gifs/translate_transformation.gif "segment")
 
 
 ### example 2: rotation
