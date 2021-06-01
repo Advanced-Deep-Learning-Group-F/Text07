@@ -27,29 +27,36 @@ In this chapter, we will go on to learn about yet another topic in deep learning
 
 
 
-# What is Image Registration?
+## What is Image Registration?
 
-In an Image Registration task, we want to **align images** that are taken from a different perspective or have different distortions. We generally assume that we have at least two images that depict the same objects or the same scene. 
+In an Image Registration task, we want to **align images** that are taken from **different perspectives** or have different distortions. We generally assume that we have at least two images that depict the same objects or the same scene.
 
 We will now give and explain some example use-cases of such an alignment of images:
 
 <!-- #region -->
-- In HDR photography, we're interested in increasing the dynamic range (i.e. the brightness steps) of an image by combining multiple images taken with a different apperture. Details that are blown out due to overexposure in one image can be exposed just correctly in another image. Combining these images can help having an equal amount of detail in shadows as well as close to light sources and reflections. To utilize this idea, the images must first be aligned, because we don't usually have a static scene and camera.
+- In HDR (High Dynamic Range) photography, we're interested in increasing the dynamic range (i.e. the brightness steps) of an image by combining multiple images taken with a different aperture. Details that are blown out due to overexposure in one image can be exposed just correctly in another image. Combining these images can help having an equal amount of detail in shadows as well as close to light sources and reflections. To utilize this idea, the images must first be aligned, because we don't usually have a static scene and camera.
+<img src="images/HDR_new_layout.png" width="100%" height="100%" style="padding-top:15px"/>
 
 
-- In Focus stacking we want to combine images with different focus to obtain an image in which the depth of field is maximal and everything is in focus. For this too, we need to have the images aligned.
+- In Focus stacking we want to combine images with different focuses to obtain an image in which the depth of field is maximal and everything is in focus. For this too, we need to have the images aligned.
+<img src="images/focus_stacking.png" width="75%" height="75%" style="padding-top:15px"/>
 
 
 - Similarly to stacking focus, we can use multiple images to increase the signal to noise ratio in an image (i.e. make invisible structure visible by combining multiple signals).
+<img src="images/signal_to_noise.png" width="55%" height="55%" style="padding-top:15px"/>
 
 
 - In Medical imaging (e.g. MRI), images need to be aligned to facilitate comparison between different subjects or between different images of the same subject at different times.
+<img src="images/mri.png" width="40%" height="40%" style="padding-top:15px"/>
 
 
-- In panorama or 360° photography, we want to stack images taken from different angles and positions to obtain a seamless image covering a larger area. An example of this is Google Maps' Street View.
+- In panorama or 360° photography, we want to stack images taken from different angles and positions to obtain a seamless image covering a larger area. An example of this is Google Maps' Street View. We also call this process Image Stitching
+<img src="images/stitching.png" width="50%" height="50%" style="padding-top:15px"/>
 
 
 - In repeat photography, we want to align historical images with contemporary images to compare how a place has changed throughout history.
+<img src="images/repeat.png" width="50%" height="50%" style="padding-top:15px"/>
+
 
 - Scene reconstruction is a bit different from the previous examples in that we don't align a taken image with another image but a 3D scene with an image.
 
@@ -66,13 +73,13 @@ We see that the use of image registration techniques is already pretty common (e
 In the following section we will inquire about the notion of global transformation matrices, that are needed to transform an image in order to align it with another image.
 <!-- #endregion -->
 
-# Global Transformation Matrices
+## Global Transformation Matrices
 
 When aligning two images in Image Registration, we assume that one image is a transformed version of the other image. 
 
 In *rigid* registration we assume that the transformation can be described by a global transformation (comprising rotation, translation as well as affine or projective transformations). *Non-rigid* Image Registration on the other hand does not assume a global transformation having taken place but a local distortion. This might be useful for un-distorting pictures taken with a lens that has a distortion but in this chapter we will focus on rigid Image Registration.
 
-A global transformation in rigid Registration can be described by a transformation matrix. This also brings us to the first historical approach to image registration.
+A global transformation in rigid Registration can be described by a transformation matrix. This also brings us to the first historical approach to image registration. If you are unsure about why matrices represent transformations we recommend [this video](https://www.youtube.com/watch?v=kYB8IZa5AuE).
 
 <!-- #region -->
 # Approach 1
@@ -88,7 +95,7 @@ While affine transformations preserve parallel lines, projective transformations
 ### example 1: translation
 An example for translation, another example for rotation and another one for projective transformation (slide 55, but in LaTeX with nice matrix representation and two images)
 ![image.png](attachment:image.png)
-![SegmentLocal](gifs/translate_transformation.gif "segment")
+<img src="gifs/translate_transformation.gif" width="50%" height="50%"/>
 
 
 ### example 2: rotation
