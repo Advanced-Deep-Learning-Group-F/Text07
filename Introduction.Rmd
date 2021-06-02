@@ -108,33 +108,38 @@ So for example we can rotate our image or squezze or stretch it from oposing sid
 </tr></table>
  
 
+Now the question arises, is there anything that we can with the image in our hands that is not described by affine transformations.<br>
+And the answer is yes. We can for example tilt the image to the right. From a 2d point of view, the left side of the image grows larger while the right side gets smaller. This kind of transformation cannot be expressed by an affine transformation in two dimensions. <br>
+
+If we also want to mathematically express tilts without bothering with any more complex transformations we can just switch to 3 dimensions. In 3d a tilt is nothing but a rotation. <br>
+Going 3d has another benefit. If you look at top side of the sheared square you can see how it is shifting. So what what if we shear a cube in 3d and imagine the top side as our image ... *drumroll* We just shifted/translated our image with a **linear** transformation without having to add any vector.<br>
+
+So in essence, if we go 3 dimensional and place our image at $z=1$ (top of square) then we can achieve <br>
+affine and projective (tilting) transformations from a 2 dimensional perspective with just linear transformations (simple matrix).<br>
+(*"from a 2 dimensional perspective"* ~ meaning we project our image back to 2 dimensions after the transformation)
+<br>
+
+If you want further illustrations you can check out [this video](https://www.youtube.com/watch?v=E3Phj6J287o)
+<br>
+
+Below is some math to elaborate how we "go" into 3d and thus integrate the "added vector" into the matrix
+
+$$\mathbf{y} = A \mathbf{x} + \mathbf{b}$$
+
+$$\begin{bmatrix} \mathbf{y} \\ 1 \end{bmatrix}
+= \left[ \begin{array}{ccc|c} & A & & \mathbf{b} \\ 0 & \cdots & 0 & 1 \end{array} \right]
+\begin{bmatrix} \mathbf{x} \\ 1 \end{bmatrix}$$
 
 
 
+Coming back to the title of this section, **Global vs Local Transformations**, everything we did so far we applied to the whole image or in fact to the whole 2d plane. This is why we call all these transformations **Global**. <br>
+In **Rigid Registration** we assume that we can align images with a Global transformation.
 
+This stands in contrast to **Non-Rigid Image Registration** where assume that a local distortion has taken place. This might be useful for un-distorting pictures taken with a lens that has a distortion, but in this chapter we will focus enterily on **Rigid Image Registration**.
 
+*Note: Rigid Registration is **not** to be confused with Rigid Transformation*
 
-
-
-Now the question arises, is there anything that we can with the image in our hands that is not described by affine transformations
-
- 
-<!-- #endregion -->
-
-<!-- #region -->
-## Global Transformation Matrices
-
-When aligning two images in Image Registration, we assume that one image is a transformed version of the other image. 
-
-In *rigid* registration we assume that the transformation can be described by a global transformation (comprising rotation, translation as well as affine or projective transformations). *Non-rigid* Image Registration on the other hand does not assume a global transformation having taken place but a local distortion. This might be useful for un-distorting pictures taken with a lens that has a distortion but in this chapter we will focus on rigid Image Registration.
-
-A global transformation in rigid Registration can be described by a transformation matrix. 
-In the following we will present
-
-
-
-
-But how can we get a transformation matrix that aligns two images from different perspectives in a satisfying manner
+### With all this linear algebra out of the way we can finally jump into the first approach.
 <!-- #endregion -->
 
 <!-- #region -->
