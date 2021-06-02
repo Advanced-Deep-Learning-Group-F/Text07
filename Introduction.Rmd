@@ -29,7 +29,7 @@ In this chapter, we will go on to learn about yet another topic in deep learning
 
 ## What is Image Registration?
 
-In an Image Registration task, we want to **align images** that are taken from **different perspectives** or have different distortions. We generally assume that we have at least two images that depict the same objects or the same scene.
+In an Image Registration task, we want to **align images** that are taken from **different perspectives** or have **different distortions**. We generally assume that we have at least two images that depict the same objects or the same scene.
 
 We will now give and explain some example use-cases of such an alignment of images:
 
@@ -65,21 +65,77 @@ We will now give and explain some example use-cases of such an alignment of imag
 
 
 - Stabilizing a video taken by a non-static camera can also be interpreted as aligning images. 
-
+<br><br>
 
 We see that the use of image registration techniques is already pretty common (even without VR and AR technologies playing a central role in our lives).
 
-
-In the following section we will inquire about the notion of global transformation matrices, that are needed to transform an image in order to align it with another image.
+But how do we actually align images?
 <!-- #endregion -->
 
+<!-- #region -->
+## Global vs Local Transformations
+Imagine yourself with two images each taken from a different perspective. One of them lays infront of you on a table the other one you hold with both of your hands. Lets also say that the image in your hands is somewhat transparent to make it easier. How would you align the image in your hands to the image on the table?
+<br>
+
+The first thing you might do is move the image roughly above the image on the table so that their positions somewhat match up.<br>
+If we abstract our image into the realm of mathematics then we can think of the image as in a 2d space<br>
+and we can interpret its movement as a shift along the x or y-axis. <br>
+To achieve these kind of shifts we shift the whole 2d space and with it will go the image as a subset of this space. To transform our 2d space in general we can use our favourite thing, matrices.<br>
+If you are unsure about why matrices represent transformations we recommend [this video](https://www.youtube.com/watch?v=kYB8IZa5AuE). <br>
+The thing is that matrices will only transform our space linearly, meaning the origin will stay fixed and parallel lines will remain parallel. Parallel lines staying parallel sounds good, but to achieve a shift we will also have to move the origin.<br>
+
+To adress this issue we can  switch to affine transformations<br>
+You can think of affine transformations as doing a linear transformation but then adding a vector on top.
+<br>
+
+$$f(x) = Ax + b$$
+<br>
+
+$$\begin{pmatrix}5\\3\end{pmatrix} = \begin{bmatrix}2 & 0 \\ 0 & 2\end{bmatrix} \centerdot \begin{pmatrix}2\\1\end{pmatrix} + \begin{pmatrix}1\\1\end{pmatrix}$$
+
+So we can transform our image linearly with *matrix* $A$ and also shift it along the x or y-axis with *vector* $b$.<br>
+*To get the name of the transformations hover over the gifs*
+<img title="Translation" src="gifs/simple_translate.gif" width="30%" height="30%"/>
+
+
+
+For our hands on example that means we can now roughly match the positions by shifting the image and we can also do everything that keeps parallel lines parallel, think of the edges staying parallel.<br>
+So for example we can rotate our image or squezze or stretch it from oposing sides, given that the material allows for it.<br>
+*The blue grid represents the old space without a transformation applied*
+<table><tr>
+<td> <img title="Rotation" src="gifs/rotation.gif" width="50%" height="50%"/> </td>
+<td> <img title="Stretching" src="gifs/stretching.gif" width="50%" height="50%"/> </td> 
+</tr></table>
+ 
+
+
+
+
+
+
+
+
+
+Now the question arises, is there anything that we can with the image in our hands that is not described by affine transformations
+
+ 
+<!-- #endregion -->
+
+<!-- #region -->
 ## Global Transformation Matrices
 
 When aligning two images in Image Registration, we assume that one image is a transformed version of the other image. 
 
 In *rigid* registration we assume that the transformation can be described by a global transformation (comprising rotation, translation as well as affine or projective transformations). *Non-rigid* Image Registration on the other hand does not assume a global transformation having taken place but a local distortion. This might be useful for un-distorting pictures taken with a lens that has a distortion but in this chapter we will focus on rigid Image Registration.
 
-A global transformation in rigid Registration can be described by a transformation matrix. This also brings us to the first historical approach to image registration. If you are unsure about why matrices represent transformations we recommend [this video](https://www.youtube.com/watch?v=kYB8IZa5AuE).
+A global transformation in rigid Registration can be described by a transformation matrix. 
+In the following we will present
+
+
+
+
+But how can we get a transformation matrix that aligns two images from different perspectives in a satisfying manner
+<!-- #endregion -->
 
 <!-- #region -->
 # Approach 1
