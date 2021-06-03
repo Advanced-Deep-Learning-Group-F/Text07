@@ -177,9 +177,11 @@ As highlighted in yellow, during testing, in order to increase the resolution of
 Then the subsequent convolutional layers (conv4_1 to conv4_3) are replaced with **dilated convolutions with a rate of 2**, so that their receptive field remains unchanged. With these modifications, the obtained feature maps have a resolution of one fourth of the input resolution, which allows for more tentative keypoints and a better localization.
 
 
-#### 3.3.1  Stride and dilation
+#### 3.3.1  Dilated Convolution
+In dilated convolution we dilate or spread out our kernel to increase the receptive field without increasing our parameter count.
+[Image Reference](https://arxiv.org/pdf/1603.07285.pdf)
 
-Here is a brief recap on dilated convolution:
+<img title="Dilated Convolution" src="D2_Net_Imgs/dilated_convolution.png" width="50%" height="50%"/>
 
 
 
