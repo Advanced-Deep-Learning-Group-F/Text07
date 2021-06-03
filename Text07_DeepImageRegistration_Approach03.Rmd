@@ -18,36 +18,56 @@ jupyter:
 ## Content
 (can be completed in the end)
 
-<!-- #region -->
+
 ## 3. Deep features: Detect-and-Describe
 
-The central idea of [D-2 Net paper](https://arxiv.org/abs/1905.03561) is to first use CNN to compute a set of feature maps, which are then used to compute the descriptors (as slices through all maps at a specific pixel position) and to detect keypoints (as local maxima of the feature maps). 
 
-In contrast, the previous method - *detect-then-describe* - first applies a feature detector to identify a set of keypoints, which then provides image patches extracted around the keypoints for feature description. According to [Dusmanu and colleagues](https://arxiv.org/abs/1905.03561), the limitation of *detect-then-describe* is that the lack of repeatability in the keypoint detector: While local descriptors consider larger patches and potentially encode higher-level structures, the keypoint detector only considers small image regions. As a result, the detections are unstable under strong appearance changes. This is due to the fact that the low-level information used by the detectors is often significantly more affected by changes in lowlevel image statistics such as pixel intensities.
+From object detection lectures, we learned that for models in the R-CNN family, the detection consists of two stages: (1) first, the model proposes a set of regions of interests by selecting search or regional proposal network. The proposed regions are sparse as the potential bounding box candidates can be infinite. (2) Then a classifier only processes the region candidates ([Lil'log](https://lilianweng.github.io/lil-log/2018/12/27/object-detection-part-4.html)).
 
+Similarly, *detect-then-describe* method first applies a feature detector to identify a set of keypoints, which then provides image patches extracted around the keypoints for feature description. 
+
+According to [Dusmanu and colleagues](https://arxiv.org/abs/1905.03561), the limitation of *detect-then-describe* is the lack of repeatability in the keypoint detector: while local descriptors consider larger patches and potentially encode higher-level structures, the keypoint detector only considers small image regions. As a result, the detections are unstable under strong appearance changes. This is due to the fact that the low-level information used by the detectors is often significantly more affected by changes in lowlevel image statistics such as pixel intensities.
+
+This motivates the work of *detect-and-describe* as introduced in the [D-2 Net paper](https://arxiv.org/abs/1905.03561). 
 
 <td> <img title="Stretching" src="D2_Net_Imgs/comparison_detection_describe.png" width="40%" height="40%"/> </td> 
 
-<!-- #endregion -->
 
-### Discussion during previous meeting: Neural Networks are used to obtain deep features (instead of classical features). Then traditional methods are used to match features on paired images.
+The central idea is to first use CNN to compute a set of feature maps, which are then used to compute the descriptors (as slices through all maps at a specific pixel position) and to detect keypoints (as local maxima of the feature maps). Unlike approach 1 and 2 whose goal is to learn the underlying transformation matrix, the task here is to establish pixel-level correspondences.
 
 <!-- #region -->
 ### 3.1 Joint Detection and Description Pipeline
 
-The *detect-and-describe* proposes a joint detection and description pipeline (as opposed to two-stage pipeline in *detect-then-describe*). In other words, all parameters are shared between detection and description and a joint formulation that simultaneously optimizes for both tasks is used. Because both detector and descriptor share the underlying representation, this approach is referred to as D2.
+The ***detect-and-describe*** proposes a joint detection and description pipeline (as opposed to two-stage pipeline in *detect-then-describe*). In other words, all parameters are shared between detection and description and a joint formulation that simultaneously optimizes for both tasks is used. Because both detector and descriptor share the underlying representation, this approach is referred to as D2.
 
 <td> <img title="Stretching" src="D2_Net_Imgs/D2_pipline.png" width="80%" height="80%"/> </td> 
 
 
-Before feature description and detection, **the fist step** in the pipeline is to apply a CNN F on the input image $I$ to obtain a 3D tensor $F$ = F($I$ ); $F$ belongs to Rh×w×n, where h×w is the spatial resolution of the feature maps and n the number of channels.
+Before feature description and detection, **the fist step** in the pipeline is to apply a CNN $\mathcal{F}$ on the input image $I$ to obtain a 3D tensor $F$ = $\mathcal{F}($I$)$; $F$ $\in$ $\mathbb{R}^{h×w×n}$, where $h×w$ is the spatial resolution of the feature maps and $n$ the number of channels. 
+
+In the context of **feature description**, the 3D tensor $F$ could be interpreted as a dense set of descriptor vectors $\mathbf{d}$. As indicated above in Figure 2 (b) and Figure 3 - left image, each $\mathbf{d}$ is the **blue cube** at each $ixj$ position/pixel across all channels. The mathematical definition of $\mathbf{d}$ is $\mathbf{d}_{ij} = F_{ij:}, \mathbf{d} \in \mathbb{R}^{n} (i = 1,...,h; j = 1,...,w)$.
+
+After L2 normalization, these descriptor vectors could be readily compared between images to establish correspondences using Euclidean distance. ($\mathbf{\hat{d}}_{ij} = \mathbf{d}_{ij}/\lVert d \rVert_2$) 
+<!-- #endregion -->
+
+<!-- #region -->
+### INTERNAL notes:
+Discussion during previous meeting: Neural Networks are used to obtain deep features (instead of classical features). Then traditional methods are used to match features on paired images.
+
+
+Not learning transformatoin matrix, but to match points of paired image.
 
 <!-- #endregion -->
 
-#### 3.1.1 Feature Description
+#### 3.1.1 Feature Detection
 
+After knowing what the feature descriptors are, we would like to know what **feature detection** is. 
 
-#### 3.1.2 Feature Detection
+Through the lense of feature detection, the 3D tensor $F$ could be interpreted as a collection of 2D responses $D$: $$D^{k} = F_{::k}, D^{k} \in \mathbb{R}^{hxw} (k = 1, ..., n)$$ 
+
+The feature extraction function $\mathbb{F}$ could be thought of as $n$ different feature detector functions $D^{k}$, each producing a 2D feature map (or detection map as named in the original paper) $D^{k}$. In Figure 3 - left image, $D^{k}$ is pointed out. A detection can take place on any of the response maps. 
+
+If only a subset of locations are selected as the output keypoints, what are the restrictions to detect a point $(i, j)$?
 
 
 **Hard Feature Detection**
@@ -66,11 +86,6 @@ Before feature description and detection, **the fist step** in the pipeline is t
 <td> <img title="Stretching" src="D2_Net_Imgs/negative_pair.png" width="40%" height="40%"/> </td> 
 
 
-#### 3.2.2 Stride and dilation for testing
-explain dilation briefly
-
-
-
 #### 3.2.3 Scale invariance
 
 
@@ -84,16 +99,26 @@ to initialize the feature extraction network $F$.
 
 <td> <img title="Network Architecture" src="D2_Net_Imgs/train_test_arch.png" width="80%" height="80%"/> </td> 
 
-As highlighted in yellow, at test time, in order to increase the resolution of the feature maps, the last pooling layer (pool3) from $F$ with a stride of 2 is replaced by an average pooling layer with a stride of 1.
+As highlighted in yellow, during testing, in order to increase the resolution of the feature maps, the last pooling layer (pool3) from $F$ with a stride of 2 is replaced by an average pooling layer with a stride of 1.
 
-Then, the subsequent convolutional layers (conv4 1 to conv4 3) are replaced with dilated convolutions with a rate of 2, so that their receptive field remains unchanged. With these modifications, the obtained feature maps have a resolution of one fourth of the input resolution, which allows for more tentative keypoints and a better localization.
+Then the subsequent convolutional layers (conv4_1 to conv4_3) are replaced with **dilated convolutions** with a rate of 2, so that their receptive field remains unchanged. With these modifications, the obtained feature maps have a resolution of one fourth of the input resolution, which allows for more tentative keypoints and a better localization.
+
+
+
+#### 3.3.1  Stride and dilation
+
+Here is a brief recap on dilated convolution:
+
 
 
 ### 3.4 Dataset - MegaDepth Dataset 
 
 To generate training data on the level of pixel-wise correspondences, [the MegaDepth dataset](https://www.cs.cornell.edu/projects/megadepth/) is used, which consists of 196 different scenes reconstructed from 1,070,468 internet photos using COLMAP.
 
-Here is an example of the MegaDepth Dataset. (The images at the bottom row are heat-maps, indicating the distance to the camera. Black is sky and the value is infinite.)
+To extract the correspondences, the authors use depth information to obtain image pairs and key point correspondences for training.
+
+Here is an example of the MegaDepth Dataset. 
+(The images at the bottom row are depth maps, indicating the distance to the camera. Black is sky and the value is infinite.)
 
 <td> <img title="Mega Depth" src="D2_Net_Imgs/MegaDepth_demo1.png" width="50%" height="50%"/> </td> 
 
