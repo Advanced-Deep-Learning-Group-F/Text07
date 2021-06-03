@@ -100,11 +100,13 @@ So we can transform our image linearly with *matrix* $A$ and also shift it along
 
 
 For our hands on example that means we can now roughly match the positions by shifting the image and we can also do everything that keeps parallel lines parallel, think of the edges staying parallel.<br>
-So for example we can rotate our image or squezze or stretch it from oposing sides, given that the material allows for it.<br>
+So for example we can rotate our image or squeeze or stretch it from opposing sides, given that the material allows for it.<br>
 *The blue grid represents the old space without a transformation applied*
 <table><tr>
-<td> <img title="Rotation" src="gifs/rotation.gif" width="50%" height="50%"/> </td>
-<td> <img title="Stretching" src="gifs/stretching.gif" width="50%" height="50%"/> </td> 
+<td> <img title="Rotation" src="gifs/rotation.gif" width="100%" height="100%"/> </td>
+<td> <img title="Squeezing" src="gifs/squeezing.gif" width="100%" height="100%"/> </td>
+<td> <img title="Stretching" src="gifs/stretching.gif" width="100%" height="100%"/> </td> 
+<td> <img title="Shearing" src="gifs/shearing.gif" width="100%" height="100%"/> </td> 
 </tr></table>
  
 
@@ -112,12 +114,16 @@ Now the question arises, is there anything that we can with the image in our han
 And the answer is yes. We can for example tilt the image to the right. From a 2d point of view, the left side of the image grows larger while the right side gets smaller. This kind of transformation cannot be expressed by an affine transformation in two dimensions. <br>
 
 If we also want to mathematically express tilts without bothering with any more complex transformations we can just switch to 3 dimensions. In 3d a tilt is nothing but a rotation. <br>
-Going 3d has another benefit. If you look at top side of the sheared square you can see how it is shifting. So what what if we shear a cube in 3d and imagine the top side as our image ... *drumroll* We just shifted/translated our image with a **linear** transformation without having to add any vector.<br>
+Going 3d has another benefit. If you look at top side of the sheared square you can see how it is shifting. So what what if we shear a cube in 3d and imagine the top side as our image ... *drumroll*... We just shifted/translated our image with a **linear** transformation without having to add any vector.
+
+<img title="Shearing and Translation" src="gifs/combined_translate_shear.gif" width="65%" height="65%"/>
+ 
 
 So in essence, if we go 3 dimensional and place our image at $z=1$ (top of square) then we can achieve <br>
 affine and projective (tilting) transformations from a 2 dimensional perspective with just linear transformations (simple matrix).<br>
 (*"from a 2 dimensional perspective"* ~ meaning we project our image back to 2 dimensions after the transformation)
 <br>
+<img title="Rotation" src="gifs/ProjectiveTransformation.gif" width="50%" height="50%"/> 
 
 If you want further illustrations you can check out [this video](https://www.youtube.com/watch?v=E3Phj6J287o)
 <br>
@@ -135,44 +141,50 @@ $$\begin{bmatrix} \mathbf{y} \\ 1 \end{bmatrix}
 Coming back to the title of this section, **Global vs Local Transformations**, everything we did so far we applied to the whole image or in fact to the whole 2d plane. This is why we call all these transformations **Global**. <br>
 In **Rigid Registration** we assume that we can align images with a Global transformation.
 
-This stands in contrast to **Non-Rigid Image Registration** where assume that a local distortion has taken place. This might be useful for un-distorting pictures taken with a lens that has a distortion, but in this chapter we will focus enterily on **Rigid Image Registration**.
+This stands in contrast to **Non-Rigid Image Registration** where assume that a **local** distortion has taken place. This might be useful for un-distorting pictures taken with a lens that has a distortion, but in this chapter we will focus enterily on **Rigid Image Registration**.
 
-*Note: Rigid Registration is **not** to be confused with Rigid Transformation*
 
 ### With all this linear algebra out of the way we can finally jump into the first approach.
 <!-- #endregion -->
 
 <!-- #region -->
-# Approach 1
+# Approach 1: Estimating the Transformation Matrix
 
-To understand the first approach, we must understand how an image can be rotated, translated, projected, sheared, scaled etc. with transformation matrices. For this purpose, we give two examples for rotation and translation and provide a link to resources about other transformations.
+This approach is all about using a Single Layer Neural Network (SL-NN) to predict **parameters** of **affine transformations** in 2 dimensions.<br>
+Because we restrict ourselves to affine transformations that also means that we assume that the planar object that we want to align is not tilted like we saw in the previous gif.
 
-Affine transformations have the property of preserving lines and their parallelity. Translation, scaling, homothety, similarity, reflection, rotation, shear mapping, and compositions of them in any combination and sequence belong to affine transformations.
+$$A = \begin{bmatrix}a_{11} & a_{21} \\ a_{12} & a_{22}\end{bmatrix} \quad and \quad b = \begin{pmatrix}b_1\\b_2\end{pmatrix}$$
 
-While affine transformations preserve parallel lines, projective transformations in projective geometry do not preserve parallel lines. Projective transformations can be best thought of as changing the perspective/viewpoint.
+The prediction is based on image coordinates of the points in a transformed view or perspective.<br>
+Note that we dont give the network any information about the original view of our planar object. If you are now wondering how the network would then be able to predict the affine transformation that would align two yet unseen images, then you are right to wonder, because in this approach we always train with the same original image that is then transformed into many new views from which the network has to predict the respective transformations.<br>
 
-"Approach 1" is concerned with learning affine transformations.
-
-### example 1: translation
-An example for translation, another example for rotation and another one for projective transformation (slide 55, but in LaTeX with nice matrix representation and two images)
-![image.png](attachment:image.png)
-<img src="gifs/translate_transformation.gif" width="50%" height="50%"/>
+After training the network should be able to generalize, that is predict the parameters of the transformation for an image in an unknown view.
 
 
-### example 2: rotation
+### Procedure
+The first thing we do is choose a model, but not model as in neural network but as in mould or object.
+This model represents our original image from which we generate new views.
+<img src="images/models.png" width="50%" height="50%" style="padding-top:15px"/>
 
-- x
+Before we generate new views based on affine transformations we define the possible ranges of values for the parameters that constitute the transformation.
+
+In the next step we sample affine transformations according to the previously defined parameter ranges. These transformations will then be applied to the known view, our original image or model. The result are transformed views which are then used to train the Single Layer Neural Network.
+
+The input is not the transformed images themselves but coordinates of points in the transformed images. Points like the *int_points* in the illustration above.
+
+The loss is calculated based on the predicted and true parameters using the sum of squared errors
+
+
+One important detail about the architecture is that they split the coordinates of the transformed points into x and y values which reduced the time to generate the transformed views significantly and also reduced the network size by half. *(This was in 1999, when hardware limitation were still a concern)*
+
+
+### Testing
+To test the models performance they compared the outputed transformation parameters directly to the true parameters and also compared the original image with the true transformation applied to the original image with the predicted transformation applied.
+
+
+### PCA
+
 <!-- #endregion -->
-### Gifs
-![SegmentLocal](gifs/LinearTransformation.gif "segment")
-
-
-
-
-
-
-
-
 ```{python}
- 
+
 ```
