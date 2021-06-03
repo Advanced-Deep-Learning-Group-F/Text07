@@ -51,15 +51,6 @@ In the context of ***feature description***, the 3D tensor $F$ could be interpre
 After L2 normalization, these descriptor vectors could be readily compared between images to establish correspondences using Euclidean distance. ($\mathbf{\hat{d}}_{ij} = \mathbf{d}_{ij}/\lVert d \rVert_2$) 
 <!-- #endregion -->
 
-<!-- #region -->
-### INTERNAL notes:
-Discussion during previous meeting: Neural Networks are used to obtain deep features (instead of classical features). Then traditional methods are used to match features on paired images.
-
-
-Not learning transformatoin matrix, but to match points of paired image.
-
-<!-- #endregion -->
-
 #### 3.1.1 Feature Detection
 
 After knowing what the feature descriptors are, we would like to know how ***feature detection*** works. 
@@ -160,7 +151,7 @@ An intuitive way of understanding this loss: it seeks to enforce the distinctive
 
 Step 4: to ensure *repeatability* of detections, an detection term is added to the triplet margin ranking loss:
 
-$$\mathcal{L}\left(I_{1}, I_{2}\right)=\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum_{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(p(c), n(c)) =\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum_{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(c)$$
+$$\mathcal{L}\left(I_{1}, I_{2}\right)=\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum_{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(c)$$
 
 Here, $s_{c}^{(1)}$ and $s_{c}^{(2)}$ are the soft detection scores at points $A$ and $B$ in $I_1$ and $I_2$ respectively. $\mathcal{C}$ is the set of all correspondence between $I_1$ and $I_2$.
 
