@@ -46,7 +46,7 @@ The ***detect-and-describe*** proposes a joint detection and description pipelin
 Before feature description and detection, **the fist step** in the pipeline is to apply a feature extraction CNN $\mathcal{F}$ on the input image $I$ <br>
 to obtain a 3D tensor $F$ = $\mathcal{F}($I$)$; $F$ $\in$ $\mathbb{R}^{h×w×n}$, where $h×w$ is the spatial resolution of the feature maps and $n$ the number of channels. 
 
-In the context of ***feature description***, the 3D tensor $F$ could be interpreted as a dense set of descriptor vectors $\mathbf{d}$. As indicated above in Figure 2 (b) and Figure 3 - left image, each $\mathbf{d}$ is the **blue cube** at each $ixj$ position/pixel across all channels. The mathematical definition of $\mathbf{d}$ is $\mathbf{d}_{ij} = F_{ij:}, \mathbf{d} \in \mathbb{R}^{n} (i = 1,...,h; j = 1,...,w)$.
+In the context of ***feature description***, the 3D tensor $F$ could be interpreted as a dense set of descriptor vectors $\mathbf{d}$. As indicated above in Figure 2 (b) and Figure 3 - left image, each $\mathbf{d}$ is the **blue bar** at each $ixj$ position/pixel across all channels. The mathematical definition of $\mathbf{d}$ is $\mathbf{d}_{ij} = F_{ij:}, \mathbf{d} \in \mathbb{R}^{n} (i = 1,...,h; j = 1,...,w)$.
 
 After L2 normalization, these descriptor vectors could be readily compared between images to establish correspondences using Euclidean distance. ($\mathbf{\hat{d}}_{ij} = \mathbf{d}_{ij}/\lVert d \rVert_2$) 
 <!-- #endregion -->
@@ -73,19 +73,20 @@ If only a subset of locations are selected as the output keypoints, what are the
 
 **Hard Feature Detection**
 
-In plain words, for a point $(i,j)$ to be detected, we first look at $(i,j)$ position across all channels(i.e. the blue cube) to identify the max $D_{ij}$ at the channel $k$ (i.e. $D^{k}_{ij}$). This is called ***channel selection*** in the original paper. Then we need to check if $D^{k}_{ij}$ is also the max compared to its nearest neighbors (i.e. ***local maximum***; 9 neighbors of pixel $(i,j)$ are used in the original paper). 
+In plain words, for a point $(i,j)$ to be detected, we first look at $(i,j)$ position across all channels(i.e. the blue bar) to identify the max $D_{ij}$ at the channel $k$ (i.e. $D^{k}_{ij}$). This is called ***channel selection*** in the original paper. Then we need to check if $D^{k}_{ij}$ is also the max compared to its nearest neighbors (i.e. ***local maximum***; 9 neighbors of pixel $(i,j)$ are used in the original paper). 
 
-In other words, $D^{k}_{ij}$ are bounded by the criteria in both $hxw$ direction and channel direction.
+In other words, if $D^{k}_{ij}$ fullfils the criteria in both $hxw$ direction and channel direction then the according pixel (i,j) will be a keypoint. If the criteria are not met, then the pixel will not be a keypoint.
+So it is either or which is why we talk about **hard** feature detection.
 
 However, the hard features don't allow back-propagation for training. Therefore, as the next step, the hard detection procedures is softened to enable back-propagation.
 
 
 **Soft Feature Detection**
 
-The goal here is to take the criteria in both $hxw$ direction and channel direction into account and generate a soft detection score $s_{ij}$ for training.
+The goal here is to additionaly generate a soft detection score $s_{ij}$ for training.
 
 Step 1: compute a soft local-max. score $\alpha$ (i.e **soft-NMS** in Figure 3 - right image):
-$$\alpha_{i j}^{k}=\frac{\exp \left(D_{i j}^{k}\right)}{\sum{\left(i^{\prime}, j^{\prime}\right) \in \mathcal{N}(i, j)} \exp \left(D_{i^{\prime} j^{\prime}}^{k}\right)}$$
+$$\alpha_{i j}^{k}=\frac{\exp \left(D_{i j}^{k}\right)}{\sum_{\left(i^{\prime}, j^{\prime}\right) \in \mathcal{N}(i, j)} \exp \left(D_{i^{\prime} j^{\prime}}^{k}\right)}$$
 
 where $\mathcal{N}(i, j)$ is the set of 9 neighbours of the pixel $(i; j)$ (including itself).
 
