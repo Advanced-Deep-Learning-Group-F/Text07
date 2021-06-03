@@ -42,7 +42,7 @@ Additionally there is a bonus reward of 10 for reaching a distance smaller than 
 
 ## Supervised loss function
 
-Instead of using a standard loss used in Deep Q-Learning, this method uses a loss that is closer to supervised learning. This comes with some advantages that are necessary to deal with high dimensional volumetric imaging data and it is possible because the target Q-values (expected return for taking an action) can just be evaluated analytically. So different from standard Reinforcement Learning, this method does not require sampling full trajectories.
+Instead of using a standard loss used in Deep Q-Learning, this method uses a loss that is closer to supervised learning. This comes with some advantages that are necessary to deal with high dimensional volumetric imaging data and it is possible because the target Q-values (expected return for taking an action) can just be evaluated analytically. So different from standard Reinforcement Learning, this method does not require sampling full trajectories to obtain state-action value targets.
 
 
 ## Model architecture
