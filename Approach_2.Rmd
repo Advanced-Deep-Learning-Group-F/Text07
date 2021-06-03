@@ -49,7 +49,3 @@ Instead of using a standard loss used in Deep Q-Learning, this method uses a los
 
 The network that was used for this approach had 5 convolutional layers followed by 3 fully connected layers and 12 output neurons one for each possible action.
 <!-- #endregion -->
-
-```{python}
-
-```
