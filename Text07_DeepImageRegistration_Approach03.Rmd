@@ -106,7 +106,12 @@ An image pyramid is proposed to be used during testing.
 
 Briefly speaking, given an input image $I$, three different resolutions (half resolution, input resolution, and double resolution) is applied to $I$ and feature maps at those three resolutions are extracted using those three variants of $I$.
 
-For details, we recommend you to check out the paper.
+Since the intuition is also introduced in object detection, we recommend you to check out the paper for the exact operations.
+
+
+#### 3.1.3 Subpixel accuracy
+
+This has little to do with deep learning. For details, we would like to recommend you to check out the original paper.
 
 
 ### 3.2 Jointly Optimizing Detection and Description
@@ -116,25 +121,60 @@ For details, we recommend you to check out the paper.
 
 #### 3.2.1 Training Loss
 
+To jointly optimizes the detection and description objectives using a single CNN $\mathcal{F}$, we need an appropriate loss $\mathcal{L}$.
+
+The loss $\mathcal{L}$ needs to address the following two objectives:<br/>
+1. for detection, we want keypoints to be repeatable under changes in viewpoint or illumination.<br/> 
+2. for description, we want descriptors to be distinctive, so that they are not mismatched.<br/>
+
+An extension of triplet margin ranking loss is used, which has two anchors and consider two directions (as opposed to one anchor and considering only one direction as we learned previously).
+
+Suppose we have a pair of images $(I_1, I_2)$ and a correspondence $c : A \leftrightarrow B (A \in I_1, B \in I_2)$. The extended triplet margin ranking loss seeks to minimize the distance of the corresponding descriptors (ground truth) $\mathbf{\hat{d}}^{(1)}_{A}$ and $\mathbf{\hat{d}}^{(1)}_{B}$, while maximizing the distance to other confounding descriptors $\mathbf{\hat{d}}^{(1)}_{N_1}$ and $\mathbf{\hat{d}}^{(1)}_{N_2}$ in either images.
+
+Using what we learned before, we could understand $\mathbf{\hat{d}}^{(1)}_{N_1}$ as the hardest negative case similar to $\mathbf{\hat{d}}^{(1)}_{A}$ and $\mathbf{\hat{d}}^{(1)}_{N_2}$ similar to $\mathbf{\hat{d}}^{(1)}_{B}$. One thing new is that they need to lie outside of a square local neighbourhood
+of the correct correspondence:
+
+$$N_{1}=\underset{P \in I_{1}}{\arg \min }\lVert \hat{\mathbf{d}}_{P}^{(1)}-\hat{\mathbf{d}}_{B}^{(2)}\rVert_{2} \text { s.t. }\lVert P-A \rVert_{\infty}>K$$
+
+and similarly for $N_2$.
+
 <td> <img title="Stretching" src="D2_Net_Imgs/negative_pair.png" width="40%" height="40%"/> </td> 
 
+Step 1: define ***positive* descriptor distance $p(c)$** between the
+corresponding descriptors $\mathbf{\hat{d}}^{(1)}_{A}$ and $\mathbf{\hat{d}}^{(1)}_{B}$:
 
-#### 3.2.4 Subpixel accuracy
+$$p(c)=\lVert\hat{\mathbf{d}}_{A}^{(1)}-\hat{\mathbf{d}}_{B}^{(2)}\rVert_{2}$$
 
-This has little to do with deep learning. For details, we would like to recommend you to check out the original paper.
+Step 2: define ***negative* descriptor distance $p(c)$** which accounts for the most
+confounding descriptor for either $\mathbf{\hat{d}}^{(1)}_{A}$ or $\mathbf{\hat{d}}^{(1)}_{B}$:
+
+$$n(c)=\min \left(\lVert \hat{\mathbf{d}}_{A}^{(1)}-\hat{\mathbf{d}}_{N_{2}}^{(2)}\rVert{2},\lVert \hat{\mathbf{d}}_{N_{1}}^{(1)}-\hat{\mathbf{d}}_{B}^{(2)}\rVert_{2}\right)$$
+
+Step 3: The ***triplet margin ranking loss*** for a margin $M$ can be then defined as:
+
+$$m(c)=\max \left(0, M+p(c)^{2}-n(c)^{2}\right)$$
+
+An intuitive way of understanding this loss: it seeks to enforce the distinctiveness of descriptors by penalizing any confounding descriptor that would lead to a wrong match assignment. 
+
+Step 4: to ensure *repeatability* of detections, an detection term is added to the triplet margin ranking loss:
+
+$$\mathcal{L}\left(I_{1}, I_{2}\right)=\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(p(c), n(c)) =\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(c)$$
+
+Here, $s_{c}^{(1)}$ and $s_{c}^{(2)}$ are the soft detection scores at points $A$ and $B$ in $I_1$ and $I_2$ respectively. $\mathcal{C}$ is the set of all correspondence between $I_1$ and $I_2$.
+
+We could understand $\mathcal{L}$ as a weighted average of the margin terms $m$ over all matches based on their detection scores. Thus, in order for the loss to be minimized, the most distinctive correspondences (with a smaller $m(c)$) will get higher soft detection scores; descriptors that are not very distinctive (i.e. larger $m(c)$) are encouraged to have a smaller soft detection score.
 
 
 ### 3.3 Network Architecture
 
 The VGG16 architecture, pretrained on ImageNet and truncated after the conv4 3 layer, was used
-to initialize the feature extraction network $F$.
+to initialize the feature extraction network $\mathcal{F}$.
 
 <td> <img title="Network Architecture" src="D2_Net_Imgs/train_test_arch.png" width="80%" height="80%"/> </td> 
 
-As highlighted in yellow, during testing, in order to increase the resolution of the feature maps, the last pooling layer (pool3) from $F$ with a stride of 2 is replaced by an average pooling layer with a stride of 1.
+As highlighted in yellow, during testing, in order to increase the resolution of the feature maps, the last pooling layer (pool3) from $\mathcal{F}$ with a stride of 2 is replaced by an average pooling layer with a stride of 1.
 
-Then the subsequent convolutional layers (conv4_1 to conv4_3) are replaced with **dilated convolutions** with a rate of 2, so that their receptive field remains unchanged. With these modifications, the obtained feature maps have a resolution of one fourth of the input resolution, which allows for more tentative keypoints and a better localization.
-
+Then the subsequent convolutional layers (conv4_1 to conv4_3) are replaced with **dilated convolutions with a rate of 2**, so that their receptive field remains unchanged. With these modifications, the obtained feature maps have a resolution of one fourth of the input resolution, which allows for more tentative keypoints and a better localization.
 
 
 #### 3.3.1  Stride and dilation
@@ -169,7 +209,7 @@ Below is an evaluation on the Aachen Day-Night dataset. On the $X$-axis, the dis
 
 
 ### Conclusion/Take-home message
-Trend we have observed from previous topics to this one, Multistage models to a single-stage model.
+From the previous lectures to the current one, we have observed the trend of using single-stage model instead of multistage models. The intuition behind improved performance is that the detection is not done on low-level image structures but postponed until more reliable information is available, and done jointly with the image description. 
 
 
 
