@@ -178,13 +178,10 @@ The loss is calculated based on the predicted and true parameters using the sum 
 One important detail about the architecture is that they split the coordinates of the transformed points into x and y values which reduced the time to generate the transformed views significantly and also reduced the network size by half. *(This was in 1999, when hardware limitation were still a concern)*
 
 
+### PCA
+Principle component analysis is applied to the inputs of the network in order to reduce the dimensionality.
+
+
 ### Testing
 To test the models performance they compared the outputed transformation parameters directly to the true parameters and also compared the original image with the true transformation applied to the original image with the predicted transformation applied.
-
-
-### PCA
-
 <!-- #endregion -->
-```{python}
-
-```
