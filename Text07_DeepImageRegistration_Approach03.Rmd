@@ -40,7 +40,7 @@ The *detect-and-describe* proposes a joint detection and description pipeline (a
 <td> <img title="Stretching" src="D2_Net_Imgs/D2_pipline.png" width="80%" height="80%"/> </td> 
 
 
-Before feature description and detection, the fist step in the pipeline is to apply a CNN F on the input image $I$ to obtain a 3D tensor $F$ = F($I$ ); $F$ belongs to Rh×w×n, where h×w is the spatial resolution of the feature maps and n the number of channels.
+Before feature description and detection, **the fist step** in the pipeline is to apply a CNN F on the input image $I$ to obtain a 3D tensor $F$ = F($I$ ); $F$ belongs to Rh×w×n, where h×w is the spatial resolution of the feature maps and n the number of channels.
 
 <!-- #endregion -->
 
@@ -66,8 +66,6 @@ Before feature description and detection, the fist step in the pipeline is to ap
 <td> <img title="Stretching" src="D2_Net_Imgs/negative_pair.png" width="40%" height="40%"/> </td> 
 
 
-
-
 #### 3.2.2 Stride and dilation for testing
 explain dilation briefly
 
@@ -79,11 +77,16 @@ explain dilation briefly
 #### 3.2.4 Subpixel accuracy
 
 
-### 3.3 Network architecture
+### 3.3 Network Architecture
+
+The VGG16 architecture, pretrained on ImageNet and truncated after the conv4 3 layer, was used
+to initialize the feature extraction network $F$.
 
 <td> <img title="Network Architecture" src="D2_Net_Imgs/train_test_arch.png" width="80%" height="80%"/> </td> 
 
-different for training and testing
+As highlighted in yellow, at test time, in order to increase the resolution of the feature maps, the last pooling layer (pool3) from $F$ with a stride of 2 is replaced by an average pooling layer with a stride of 1.
+
+Then, the subsequent convolutional layers (conv4 1 to conv4 3) are replaced with dilated convolutions with a rate of 2, so that their receptive field remains unchanged. With these modifications, the obtained feature maps have a resolution of one fourth of the input resolution, which allows for more tentative keypoints and a better localization.
 
 
 ### 3.4 Dataset - MegaDepth Dataset 
