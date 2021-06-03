@@ -158,11 +158,11 @@ An intuitive way of understanding this loss: it seeks to enforce the distinctive
 
 Step 4: to ensure *repeatability* of detections, an detection term is added to the triplet margin ranking loss:
 
-$$\mathcal{L}\left(I_{1}, I_{2}\right)=\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(p(c), n(c)) =\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(c)$$
+$$\mathcal{L}\left(I_{1}, I_{2}\right)=\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum_{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(p(c), n(c)) =\sum_{c \in \mathcal{C}} \frac{s_{c}^{(1)} s_{c}^{(2)}}{\sum_{q \in \mathcal{C}} s_{q}^{(1)} s_{q}^{(2)}} m(c)$$
 
 Here, $s_{c}^{(1)}$ and $s_{c}^{(2)}$ are the soft detection scores at points $A$ and $B$ in $I_1$ and $I_2$ respectively. $\mathcal{C}$ is the set of all correspondence between $I_1$ and $I_2$.
 
-We could understand $\mathcal{L}$ as a weighted average of the margin terms $m$ over all matches based on their detection scores. Thus, in order for the loss to be minimized, the most distinctive correspondences (with a smaller $m(c)$) will get higher soft detection scores; descriptors that are not very distinctive (i.e. larger $m(c)$) are encouraged to have a smaller soft detection score.
+We could understand $\mathcal{L}$ as a weighted average of the margin terms $m$ over all matches based on their detection scores. Thus, in order for the loss to be minimized, the most distinctive correspondences (with a low margin term $m$) will get higher soft detection scores; descriptors that are not very distinctive (i.e. larger $m(c)$) are encouraged to have a smaller soft detection score.
 
 
 ### 3.3 Network Architecture
