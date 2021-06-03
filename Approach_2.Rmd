@@ -12,15 +12,16 @@ jupyter:
     name: python3
 ---
 
+<!-- #region -->
 # Iterative Registration
 
 The approach of estimating the Transformation Matrix isn't easily applicable to the real world because normally the input data for image registration problems are images rather than the point pairs. To be able to work directly with images other approaches are needed. One such approach utilizes Deep Reinforcement Learning and is called Iterative Registration.
 
 The idea behind this approach is to train an artificial agent to mimick how a human expert would solve the problem of aligning images. This changes the problem from a regression task to a classification task in which the agent chooses one action at a time to iteratively align the images, hence the name of this approach.
 
-## Procedure
+## Recovering the transformation matrix for medical images
 
-The approach was first used in a medical context and opperated on 3-dimensional image data. The dataset consisted of image pairs that had to be registred. The second image of these pairs were created by applying a randomly generated transformation matrix to the original image. The agent should then learn to transform the second image back to the original one.
+The approach was first used in a medical context and opperated on 3-dimensional imaging data. The dataset consisted of single medical images. To get an image pair and an associated from these images, randomly generated transformation matrices were applied to each image, augmenting the dataset and creating a ground truth. The agent should then learn to transform the augmented image back to the original one by iteratively applying transformations that it assumes will lead to the highest return.
 
 The actions the agent can take are:
 - positive rotation around x, y and z axis
@@ -28,11 +29,27 @@ The actions the agent can take are:
 - positive translation in x, y and z direction
 - negative translation in x, y and z direction
 
-Each action can be represented as a transformation matrix that gets applied to the image. The neural network is then trained to find the action that would minimize the distance to the true transformation matrix which would yield the highest reward.
+The neural network is trained to find the action that would minimize the distance to the true transformation matrix, which would yield the highest reward.
 
-During training the true transformation matrix is known because it was used in the generation of the dataset.    
-The network takes two images as its input and from these predicts the reward each action would yield. The action, giving the maximal reward, is then applied to the second image. Together with the original image, the resulting image is then again fed into the network to predict the next action.  
+## Defining the reward
 
-## Network structure
+The reward is defined as the difference between the L2 norm distance between the true transformation matrix and the previous "aggregated" transformation matrix and its successor after applying the most recent action. 
+
+$$ r(s_t, a_t) =  D(T_g, T_t) - D(T_g, a_t \circ T_t)$$
+
+Additionally there is a bonus reward of 10 for reaching a distance smaller than 0.5 to the ground truth transformation matrix $T_g$.
+
+
+## Supervised loss function
+
+Instead of using a standard loss used in Deep Q-Learning, this method uses a loss that is closer to supervised learning. This comes with some advantages that are necessary to deal with high dimensional volumetric imaging data and it is possible because the target Q-values (expected return for taking an action) can just be evaluated analytically. So different from standard Reinforcement Learning, this method does not require sampling full trajectories.
+
+
+## Model architecture
 
 The network that was used for this approach had 5 convolutional layers followed by 3 fully connected layers and 12 output neurons one for each possible action.
+<!-- #endregion -->
+
+```{python}
+
+```
